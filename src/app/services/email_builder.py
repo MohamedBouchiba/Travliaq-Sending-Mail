@@ -44,7 +44,7 @@ def build_prompt(summary: TripSummary, frontend_url: str) -> list[dict]:
         "city_break": "Short city break: concise, energetic, quick hits for a weekend or 3-4 day stay.",
     }
     template = choose_template(summary)
-    trip_link = f"{frontend_url.rstrip('/')}/{summary.questionnaire_id}"
+    trip_link = f"{str(frontend_url).rstrip('/')}/{summary.questionnaire_id}"
     content = {
         "id": str(summary.id),
         "questionnaire_id": str(summary.questionnaire_id),
