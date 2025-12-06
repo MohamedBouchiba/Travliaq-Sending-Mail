@@ -44,10 +44,15 @@ def build_prompt(summary: TripSummary, frontend_url: str) -> list[dict]:
         "city_break": "Short city break: concise, energetic, quick hits for a weekend or 3-4 day stay.",
     }
     template = choose_template(summary)
-    trip_link = f"{str(frontend_url).rstrip('/')}/{summary.questionnaire_id}"
+    
+    # ✅ FIX: Use trip_code if available, fallback to questionnaire_id
+    identifier = summary.trip_code if summary.trip_code else summary.questionnaire_id
+    trip_link = f"{str(frontend_url).rstrip('/')}/{identifier}"
+    
     content = {
         "id": str(summary.id),
         "questionnaire_id": str(summary.questionnaire_id),
+        "trip_code": summary.trip_code,  # Added to context
         "user_email": summary.user_email,
         "persona": summary.persona,
         "travelers_count": summary.travelers_count,
@@ -84,29 +89,50 @@ def build_prompt(summary: TripSummary, frontend_url: str) -> list[dict]:
         },
         "call_to_action_url": trip_link,
     }
-    system_prompt = "You are an assistant that writes high-conversion yet honest trip recap emails. Select one of the predefined templates and adapt tone to the data. Return strict JSON with subject, preheader, text_body, html_body."
+    
+    system_prompt = (
+        "You are an expert email designer and copywriter for a premium travel agency. "
+        "Your task is to generate a JSON response containing the subject, preheader, text body, and a HIGHLY RESPONSIVE HTML body. "
+        "You must prioritize mobile responsiveness, premium aesthetics, and creative emoji usage."
+    )
+    
     user_prompt = {
         "template_selected": template,
         "template_instructions": template_guides[template],
         "templates_available": template_guides,
         "trip_summary": content,
         "requirements": {
-            "subject": "Short catchy subject including destination and optionally dates.",
-            "preheader": "Inbox preview line summarizing the trip.",
-            "text_body": "Plain text email with greeting, recap, highlights, budget, and call-to-action.",
+            "subject": "Compelling subject line with destination and 1-2 creative emojis (not generic ones).",
+            "preheader": "Teasing inbox preview.",
+            "text_body": "Plain text version.",
             "html_body": {
-                "structure": [
-                    "Greeting with persona when relevant",
-                    "Trip recap with destination, dates, duration, style, weather",
-                    "Section 'What you will love' using summary_paragraph and activities_summary",
-                    "Budget recap with totals and breakdown when available",
-                    "Call-to-action button linking to call_to_action_url",
-                    "Friendly closing"
+                "design_guidelines": [
+                    "MOBILE FIRST: The email must look perfect on mobile devices.",
+                    "Use a single-column layout with max-width: 600px centered.",
+                    "Use large, touch-friendly buttons for the CTA.",
+                    "Use premium fonts (system stack: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif).",
+                    "Use soft shadows, rounded corners (msg-like bubbles), and whitespace for a modern feel.",
+                    "Header image should be responsive (width: 100%, height: auto)."
                 ],
-                "tone": "Friendly, helpful, not salesy; clear this is a generated recap, not a booking confirmation.",
-                "media": "Use main_image_url as hero if present."
+                "emoji_style": [
+                    "Use ORIGINAL, varied, and creative emojis.",
+                    "Do NOT use generic emojis like ✈️, 🌍, 📅 repeatedly.",
+                    "Use emojis that match the specific destination vibe (e.g., 🥐/🍷 for France, 🏯/🌸 for Japan).",
+                    "Place emojis strategically in headers or highlights."
+                ],
+                "structure": [
+                    "Hero Image (main_image_url)",
+                    "Modern Header with 'Your Trip to [Destination]'",
+                    "Personalized Greeting",
+                    "Trip Highlights & Stats (Days, Budget, Style) in a grid or cards",
+                    "Detailed 'Why you'll love it' section",
+                    "Budget breakdown (if available) in a clean table or list",
+                    "Prominent CTA Button ('Discover My Trip') linking to call_to_action_url",
+                    "Footer with agency signature"
+                ],
+                "tone": "Premium, exciting, personalized, and visually 'wow'."
             },
-            "output_format": "Return JSON object with subject, preheader, text_body, html_body only",
+            "output_format": "Return JSON object with subject, preheader, text_body, html_body only"
         },
     }
     return [
