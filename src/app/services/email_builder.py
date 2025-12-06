@@ -79,7 +79,7 @@ def build_prompt(summary: TripSummary, frontend_url: str) -> list[dict]:
             "hotel_rating": summary.hotel_rating,
         },
         "media": {
-            "main_image_url": summary.main_image_url,
+            "main_image_url": str(summary.main_image_url) if summary.main_image_url else None,
             "gallery_urls": summary.gallery_urls,
         },
         "call_to_action_url": trip_link,
