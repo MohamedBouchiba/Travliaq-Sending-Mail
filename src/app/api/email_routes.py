@@ -32,8 +32,9 @@ async def send_trip_summary_email(payload: SendEmailRequest):
     summary = supabase_client.fetch_trip_summary(payload.summary_id)
     if not summary:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"ok": False, "error": "SUMMARY_NOT_FOUND", "detail": "Trip summary not found"})
-    if summary.pipeline_status and summary.pipeline_status.upper() not in {"COMPLETED", "READY", "DONE"}:
-        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"ok": False, "error": "SUMMARY_NOT_READY", "detail": "Trip summary is not ready for emailing"})
+    # ✅ Accepter SUCCESS aussi (pas seulement COMPLETED/READY/DONE)
+    if summary.pipeline_status and summary.pipeline_status.upper() not in {"SUCCESS", "COMPLETED", "READY", "DONE"}:
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"ok": False, "error": "SUMMARY_NOT_READY", "detail": f"Trip summary status is '{summary.pipeline_status}', not SUCCESS"})
     try:
         email_content = generate_email(summary)
         email_id = ResendClient().send_email(

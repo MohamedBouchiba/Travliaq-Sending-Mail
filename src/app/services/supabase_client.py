@@ -15,6 +15,7 @@ class TripSummary(BaseModel):
     destination: str
     destination_en: Optional[str]
     country_code: Optional[str]
+    trip_code: Optional[str]  # ✅ AJOUTÉ
     start_date: Optional[str]
     end_date: Optional[str]
     total_days: Optional[int]
