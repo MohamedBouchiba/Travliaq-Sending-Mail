@@ -47,6 +47,7 @@ def build_prompt(summary: TripSummary, frontend_url: str) -> list[dict]:
     
     # ✅ FIX: Use trip_code if available, fallback to questionnaire_id
     identifier = summary.trip_code if summary.trip_code else summary.questionnaire_id
+    print(f"DEBUG: Building link with identifier: '{identifier}' (trip_code: {summary.trip_code}, q_id: {summary.questionnaire_id})")
     trip_link = f"{str(frontend_url).rstrip('/')}/{identifier}"
     
     content = {
